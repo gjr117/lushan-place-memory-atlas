@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101820">
+  <title>庐山地名文化景观档案</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand-lockup">
+        <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+        <div>
+          <p class="eyebrow">LUSHAN / PLACE MEMORY ATLAS</p>
+          <h1>庐山地名文化景观档案</h1>
+        </div>
+      </div>
+      <div class="topbar-meta">
+        <span class="status-dot"></span>
+        <span>157 条调研记录</span>
+        <span class="meta-divider"></span>
+        <span id="recordCount">当前显示 0 条</span>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <section class="map-column" aria-label="景观地图">
+        <div class="map-toolbar">
+          <div class="map-heading">
+            <span class="section-kicker">01 / MAP LAYERS</span>
+            <h2 id="mapTitle">复合景观</h2>
+            <p id="mapSubtitle">自然地理与人文记忆交织的景观单元</p>
+          </div>
+          <div class="layer-tabs" role="tablist" aria-label="景观类型">
+            <button class="layer-tab is-active" data-type="复合" role="tab" aria-selected="true"><i class="tab-dot compound"></i>复合</button>
+            <button class="layer-tab" data-type="人文" role="tab" aria-selected="false"><i class="tab-dot human"></i>人文</button>
+            <button class="layer-tab" data-type="自然" role="tab" aria-selected="false"><i class="tab-dot natural"></i>自然</button>
+          </div>
+        </div>
+        <div class="map-frame" id="mapFrame">
+          <img id="mapImage" src="庐山复合.png" alt="庐山复合景观分布图">
+          <div class="map-wash"></div>
+          <div class="hotspot-layer" id="hotspotLayer" aria-label="景观点位"></div>
+          <div class="map-caption">
+            <span class="caption-line"></span>
+            <span id="mapCaption">复合景观 · 交互图层</span>
+          </div>
+          <div class="map-zoom-hint">点击点位查看档案</div>
+        </div>
+      </section>
+
+      <aside class="archive-panel" aria-label="景观档案">
+        <div class="archive-head">
+          <div>
+            <span class="section-kicker">02 / PLACE DOSSIER</span>
+            <h2>景观档案</h2>
+          </div>
+          <button class="clear-button" id="clearSelection" type="button" title="清除当前选择">清除</button>
+        </div>
+        <div class="selected-place" id="selectedPlace">
+          <div class="empty-state">
+            <div class="empty-symbol"><span></span><span></span></div>
+            <p>选择地图上的一个点位</p>
+            <small>档案详情将在这里展开</small>
+          </div>
+        </div>
+        <div class="archive-search">
+          <label for="searchInput">检索调研记录</label>
+          <div class="search-wrap">
+            <span class="search-icon" aria-hidden="true"></span>
+            <input id="searchInput" type="search" placeholder="输入地名、类别或由来关键词" autocomplete="off">
+            <kbd>/</kbd>
+          </div>
+        </div>
+        <div class="record-list-head">
+          <span>当前类型记录</span>
+          <span id="listCount">0</span>
+        </div>
+        <div class="record-list" id="recordList"></div>
+      </aside>
+    </main>
+
+    <section class="timeline-dock" aria-label="地名演化时间轴">
+      <div class="timeline-label">
+        <span class="section-kicker">03 / NAME EVOLUTION</span>
+        <strong id="timelineYearLabel">2016</strong>
+        <span class="timeline-era" id="timelineEra">当代记录</span>
+      </div>
+      <div class="timeline-main">
+        <div class="timeline-topline">
+          <span id="timelineHint">拖动时间轴，查看名称在历史阶段的出现与变化</span>
+          <button type="button" class="timeline-reset" id="timelineReset">回到现在</button>
+        </div>
+        <div class="range-wrap">
+          <input id="timelineRange" type="range" min="-223" max="2016" step="1" value="2016" aria-label="历史时间">
+          <div class="range-track" aria-hidden="true"><span></span></div>
+          <div class="range-ticks" aria-hidden="true">
+            <span style="left:0%">前223</span><span style="left:22%">500</span><span style="left:43%">1000</span><span style="left:65%">1500</span><span style="left:100%">2016</span>
+          </div>
+        </div>
+      </div>
+      <div class="timeline-stats">
+        <div><strong id="activeCount">0</strong><span>阶段已出现</span></div>
+        <div><strong id="evolutionCount">33</strong><span>有演化记录</span></div>
+      </div>
+    </section>
+
+    <footer class="footer-note">
+      <span>资料来源：庐山地名由来、起名时间与名称演化调研表</span>
+      <span>底图为既有分类制图成果 · 热点严格贴合底图原生编号圆圈（按图内 WGS84 经纬网标定）</span>
+    </footer>
+  </div>
+  <script src="web_data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
