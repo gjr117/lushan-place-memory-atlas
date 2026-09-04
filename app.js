@@ -42,9 +42,9 @@
   }
 
   const mapMeta = {
-    "复合": { image: "庐山复合.png", title: "复合景观", subtitle: "自然地理与人文记忆交织的景观单元", color: "#a981c4", className: "compound", caption: "COMPOSITE LANDSCAPE · INTERACTIVE LAYER" },
-    "人文": { image: "庐山人文.png", title: "人文景观", subtitle: "宗教、聚落、交通与历史记忆构成的文化空间", color: "#e77856", className: "human", caption: "HUMAN LANDSCAPE · INTERACTIVE LAYER" },
-    "自然": { image: "庐山自然.png", title: "自然景观", subtitle: "山体、水系、植被与自然地貌命名的空间档案", color: "#68b8b0", className: "natural", caption: "NATURAL LANDSCAPE · INTERACTIVE LAYER" },
+    "复合": { image: "lushan-composite.png", title: "复合景观", subtitle: "自然地理与人文记忆交织的景观单元", color: "#a981c4", className: "compound", caption: "COMPOSITE LANDSCAPE · INTERACTIVE LAYER" },
+    "人文": { image: "lushan-human.png", title: "人文景观", subtitle: "宗教、聚落、交通与历史记忆构成的文化空间", color: "#e77856", className: "human", caption: "HUMAN LANDSCAPE · INTERACTIVE LAYER" },
+    "自然": { image: "lushan-natural.png", title: "自然景观", subtitle: "山体、水系、植被与自然地貌命名的空间档案", color: "#68b8b0", className: "natural", caption: "NATURAL LANDSCAPE · INTERACTIVE LAYER" },
   };
 
   const state = { type: "复合", year: Number(data.meta.yearMax || 2016), selectedId: null, query: "" };
