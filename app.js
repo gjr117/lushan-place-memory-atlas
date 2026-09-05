@@ -11,7 +11,7 @@
   // Marker centers are stored in source pixels on the supplied 2400 × 3000
   // canvas. The new terrain basemap uses the same WGS84 extent as the three
   // classification maps, so each category layer can be overlaid directly.
-  const mapPoints = {
+  const legacyMapPoints = {
     人文: {
       1: [1180, 890], 2: [710, 616], 3: [948, 1147], 4: [710, 2255],
       5: [880, 781], 6: [854, 727], 9: [922, 716], 10: [584, 940],
@@ -30,6 +30,14 @@
     },
   };
 
+  // The pixel centers remain the calibrated positions from the supplied
+  // basemap.  Their layer is now taken from 研究单元优化/一级分类 so one
+  // investigation unit always belongs to exactly one of the three layers.
+  const pointBySource = Object.entries(legacyMapPoints).reduce((all, [type, points]) => {
+    Object.entries(points).forEach(([sourceNo, point]) => { all[sourceNo] = { point, legacyType: type }; });
+    return all;
+  }, {});
+
   const mapCalibration = { x0: 504, lon0: 115.9, pxPerLon: 4910, y0: 1547, lat0: 29.4, pxPerLat: 4620 };
 
   function pointCoords(pixel) {
@@ -46,6 +54,13 @@
   };
 
   const layerOrder = ["自然", "人文", "复合"];
+  const mapPoints = { 自然: {}, 人文: {}, 复合: {} };
+  Object.entries(pointBySource).forEach(([sourceNo, info]) => {
+    const unit = (data.researchUnits || {})[String(sourceNo)] || {};
+    const type = layerOrder.includes(unit.category) ? unit.category : info.legacyType;
+    if (!mapPoints[type]) mapPoints[type] = {};
+    mapPoints[type][sourceNo] = info.point;
+  });
   const state = { activeTypes: [...layerOrder], year: Number(data.meta.yearMax || 2016), selectedId: null, query: "" };
   const els = {
     mapImage: document.getElementById("mapImage"),
@@ -119,8 +134,8 @@
   }
 
   function recordsForTypes(types = activeTypes()) {
-    const sourceNos = new Set(types.flatMap((type) => Object.keys(mapPoints[type] || {})));
-    return records.filter((record) => sourceNos.has(String(record.sourceNo)));
+    const categories = new Set(types);
+    return records.filter((record) => categories.has(record.researchUnitCategory || record.mapType));
   }
 
   function visibleAtTime(record) {
@@ -131,7 +146,7 @@
     const query = state.query.trim().toLowerCase();
     return recordsForTypes().filter((record) => {
       if (!query) return true;
-      return [record.name, record.category, record.origin, record.start, record.evolution].some((value) => String(value || "").toLowerCase().includes(query));
+      return [record.name, record.researchUnitName, record.researchUnitName2, record.category, record.origin, record.start, record.evolution].some((value) => String(value || "").toLowerCase().includes(query));
     });
   }
 
@@ -140,13 +155,15 @@
   }
 
   function recordsInGroup(sourceNo) {
-    return records.filter((record) => String(record.sourceNo) === String(sourceNo));
+    const unitId = (data.researchUnits?.[String(sourceNo)] || {}).id;
+    return records.filter((record) => unitId ? record.researchUnitId === unitId : String(record.sourceNo) === String(sourceNo));
   }
 
   function mapGroups() {
     return activeTypes().flatMap((type) => Object.entries(mapPoints[type] || {}).map(([sourceNo, point]) => {
       const groupRecords = recordsInGroup(sourceNo);
-      return { type, sourceNo, point, records: groupRecords, allRecords: groupRecords };
+      const unit = (data.researchUnits || {})[String(sourceNo)] || {};
+      return { type, sourceNo, point, unit, records: groupRecords, allRecords: groupRecords };
     })).filter((group) => group.records.length);
   }
 
@@ -161,14 +178,7 @@
   }
 
   function groupLabel(group) {
-    const names = [];
-    group.records.filter(visibleAtTime).forEach((record) => {
-      const name = historicalName(record).name;
-      if (name && name !== "尚未得名" && !names.includes(name)) names.push(name);
-    });
-    if (!names.length) names.push(historicalName(group.records[0]).name);
-    const first = names[0] || `编号${String(group.sourceNo).padStart(3, "0")}`;
-    return names.length > 1 ? `${first} · ${names.length}项` : first;
+    return group.unit.name || group.records[0]?.researchUnitName || `调查单元 ${String(group.sourceNo).padStart(3, "0")}`;
   }
 
   function renderMap() {
@@ -177,7 +187,7 @@
     const types = activeTypes();
     const groups = mapGroups();
     els.mapTitle.textContent = "地名文化景观总览";
-    els.mapSubtitle.textContent = types.length ? `${types.map((type) => mapMeta[type].title).join("、")}图层叠加展示` : "请选择至少一个景观图层";
+    els.mapSubtitle.textContent = types.length ? `${types.map((type) => mapMeta[type].title).join("、")}图层叠加展示 · 按研究单元“一级分类”归属` : "请选择至少一个景观图层";
     els.mapCaption.textContent = `${types.length} / 3 图层已显示 · ${groups.length} 个编号点`;
     els.mapFrame.style.setProperty("--layer-color", types.length ? mapMeta[types[types.length - 1]].color : "#d9b36b");
     els.hotspotLayer.innerHTML = "";
@@ -192,8 +202,8 @@
       marker.type = "button";
       marker.className = `hotspot ${group.type}${selected ? " is-selected" : ""}${group.records.some(visibleAtTime) ? "" : " is-muted"}`;
       marker.style.cssText = markerStyle(group.type);
-      marker.title = `${groupLabel(group)} · 原表序号 ${String(group.sourceNo).padStart(3, "0")} · ${group.records.length} 条记录`;
-      marker.setAttribute("aria-label", `查看原表序号${group.sourceNo}档案`);
+      marker.title = `${groupLabel(group)} · ${group.type} · ${group.records.length} 条景观档案`;
+      marker.setAttribute("aria-label", `查看${groupLabel(group)}档案`);
       marker.addEventListener("click", () => selectGroup(group.sourceNo));
       marker.dataset.lon = coords.lon.toFixed(6);
       marker.dataset.lat = coords.lat.toFixed(6);
@@ -227,25 +237,30 @@
     const groupNo = state.selectedId && String(state.selectedId).indexOf("group-") === 0 ? String(state.selectedId).slice(6) : (record ? String(record.sourceNo) : null);
     if (groupNo) {
       const groupRecords = recordsInGroup(groupNo);
+      const unit = (data.researchUnits || {})[String(groupNo)] || groupRecords[0] || {};
       const mapPointInfo = mapPointForSource(groupNo);
       const mapPoint = mapPointInfo ? mapPointInfo.point : null;
       const coords = mapPoint ? pointCoords(mapPoint) : null;
       const list = groupRecords.map((item) => {
         const historic = historicalName(item);
-        return `<article class="group-record"><div class="dossier-tag" style="--point:${mapMeta[item.mapType].color}"><i></i>${escapeHtml(item.mapType)} · ${escapeHtml(item.category)}</div><h4>${escapeHtml(historic.name)}</h4><p class="group-record-meta">档案名称：${escapeHtml(item.name)} · ${escapeHtml(item.start || "年代不详")}</p><div class="dossier-copy"><strong>地名由来</strong><br>${escapeHtml(item.origin || "暂无由来记录")}</div>${item.evolution ? `<div class="dossier-copy"><strong>名称演化</strong><br>${escapeHtml(item.evolution)}</div>` : ""}</article>`;
+        const layerType = item.researchUnitCategory || unit.category || item.mapType;
+        const layerColor = (mapMeta[layerType] || mapMeta[item.mapType] || mapMeta.复合).color;
+        return `<article class="group-record"><div class="dossier-tag" style="--point:${layerColor}"><i></i>${escapeHtml(layerType)}图层 · ${escapeHtml(item.category)}</div><h4>${escapeHtml(historic.name)}</h4><p class="group-record-meta">研究单元名称2：${escapeHtml(item.researchUnitName2 || item.name)} · ${escapeHtml(item.start || "年代不详")}</p><div class="dossier-copy"><strong>地名由来</strong><br>${escapeHtml(item.origin || "暂无由来记录")}</div>${item.evolution ? `<div class="dossier-copy"><strong>名称演化</strong><br>${escapeHtml(item.evolution)}</div>` : ""}</article>`;
       }).join("");
       const groupColor = mapPointInfo ? mapMeta[mapPointInfo.type].color : "#d9b36b";
-      els.selectedPlace.innerHTML = `<div class="dossier-tag" style="--point:${groupColor}"><i></i>原生地图编号 ${String(groupNo).padStart(3, "0")}</div><h3 class="place-title">调查单元 ${String(groupNo).padStart(3, "0")}</h3><p class="place-subtitle">该热点锚定统一底图的编号位置；自然、人文、复合图层可同时显示。同一编号下共 ${groupRecords.length} 条档案。</p>${coords ? `<div class="fact-grid"><div><span class="fact-label">底图标定经度（WGS84）</span><span class="fact-value">${coords.lon.toFixed(6)}°E</span></div><div><span class="fact-label">底图标定纬度（WGS84）</span><span class="fact-value">${coords.lat.toFixed(6)}°N</span></div><div><span class="fact-label">底图像素中心</span><span class="fact-value">${mapPoint[0]} × ${mapPoint[1]} px</span></div><div><span class="fact-label">当前图层档案</span><span class="fact-value">${groupRecords.length} 条</span></div></div>` : ""}<div class="group-records">${list}</div>`;
+      const members = unit.members?.length ? unit.members.join("；") : groupRecords.map((item) => item.researchUnitName2 || item.name).join("；");
+      els.selectedPlace.innerHTML = `<div class="dossier-tag" style="--point:${groupColor}"><i></i>${escapeHtml(unit.category || mapPointInfo?.type || "景观")} · ${escapeHtml(unit.id || `RU-${String(groupNo).padStart(3, "0")}`)}</div><h3 class="place-title">${escapeHtml(unit.name || `调查单元 ${String(groupNo).padStart(3, "0")}`)}</h3><p class="place-subtitle">调查单元对应分类表“研究单元名称”；下列具体景观对应“研究单元名称2”。本单元共 ${groupRecords.length} 条调研档案。</p><div class="dossier-copy"><strong>成员景观（研究单元名称2）</strong><br>${escapeHtml(members || "暂无成员名称")}</div>${coords ? `<div class="fact-grid"><div><span class="fact-label">底图标定经度（WGS84）</span><span class="fact-value">${coords.lon.toFixed(6)}°E</span></div><div><span class="fact-label">底图标定纬度（WGS84）</span><span class="fact-value">${coords.lat.toFixed(6)}°N</span></div><div><span class="fact-label">底图像素中心</span><span class="fact-value">${mapPoint[0]} × ${mapPoint[1]} px</span></div><div><span class="fact-label">研究单元档案</span><span class="fact-value">${groupRecords.length} 条</span></div></div>` : ""}<div class="group-records">${list}</div>`;
       return;
     }
     if (!record) {
       els.selectedPlace.innerHTML = `<div class="empty-state"><div class="empty-symbol"><span></span><span></span></div><p>选择地图上的一个点位</p><small>档案详情将在这里展开</small></div>`;
       return;
     }
-    const meta = mapMeta[record.mapType] || mapMeta.复合;
+    const layerType = record.researchUnitCategory || record.mapType;
+    const meta = mapMeta[layerType] || mapMeta.复合;
     const historic = historicalName(record);
     const evolutionBlock = record.evolution ? `<div class="dossier-copy"><strong>名称演化</strong><br>${escapeHtml(record.evolution)}</div>` : `<div class="dossier-copy"><strong>名称演化</strong><br><span style="color:var(--faint)">调研表暂无连续演化记录，保留当前起名时间与由来。</span></div>`;
-    els.selectedPlace.innerHTML = `<div class="dossier-tag" style="--point:${meta.color}"><i></i>${escapeHtml(record.mapType)} · ${escapeHtml(record.category)}</div><h3 class="place-title">${escapeHtml(historic.name)}</h3><p class="place-subtitle">档案名称：${escapeHtml(record.name)} · 原表序号 ${record.sourceNo}</p><div class="fact-grid"><div><span class="fact-label">起名时间</span><span class="fact-value">${escapeHtml(record.start || "年代不详")}</span></div><div><span class="fact-label">时间轴位置</span><span class="fact-value">${formatYear(record.year)}</span></div><div><span class="fact-label">当前时点</span><span class="fact-value">${escapeHtml(historic.note)}</span></div><div><span class="fact-label">调研状态</span><span class="fact-value">${record.evolution ? "有名称演化记录" : "由来记录"}</span></div></div><div class="dossier-copy"><strong>地名由来</strong><br>${escapeHtml(record.origin)}</div>${evolutionBlock}`;
+    els.selectedPlace.innerHTML = `<div class="dossier-tag" style="--point:${meta.color}"><i></i>${escapeHtml(layerType)}图层 · ${escapeHtml(record.category)}</div><h3 class="place-title">${escapeHtml(historic.name)}</h3><p class="place-subtitle">研究单元名称：${escapeHtml(record.researchUnitName)} · 研究单元名称2：${escapeHtml(record.researchUnitName2 || record.name)}</p><div class="fact-grid"><div><span class="fact-label">起名时间</span><span class="fact-value">${escapeHtml(record.start || "年代不详")}</span></div><div><span class="fact-label">时间轴位置</span><span class="fact-value">${formatYear(record.year)}</span></div><div><span class="fact-label">所属研究单元</span><span class="fact-value">${escapeHtml(record.researchUnitId || `RU-${String(record.sourceNo).padStart(3, "0")}`)}</span></div><div><span class="fact-label">调研状态</span><span class="fact-value">${record.evolution ? "有名称演化记录" : "由来记录"}</span></div></div><div class="dossier-copy"><strong>地名由来</strong><br>${escapeHtml(record.origin)}</div>${evolutionBlock}`;
   }
 
   function renderTimeline() {
