@@ -30,22 +30,34 @@
         <div class="map-toolbar">
           <div class="map-heading">
             <span class="section-kicker">01 / MAP LAYERS</span>
-            <h2 id="mapTitle">复合景观</h2>
-            <p id="mapSubtitle">自然地理与人文记忆交织的景观单元</p>
+            <h2 id="mapTitle">地名文化景观总览</h2>
+            <p id="mapSubtitle">自然、人文与复合景观图层叠加展示</p>
           </div>
-          <div class="layer-tabs" role="tablist" aria-label="景观类型">
-            <button class="layer-tab is-active" data-type="复合" role="tab" aria-selected="true"><i class="tab-dot compound"></i>复合</button>
-            <button class="layer-tab" data-type="人文" role="tab" aria-selected="false"><i class="tab-dot human"></i>人文</button>
-            <button class="layer-tab" data-type="自然" role="tab" aria-selected="false"><i class="tab-dot natural"></i>自然</button>
+          <div class="layer-switches" role="group" aria-label="景观图层显示">
+            <label class="layer-toggle is-active" data-type="自然">
+              <input type="checkbox" data-type="自然" checked>
+              <span class="layer-check" aria-hidden="true"></span>
+              <i class="tab-dot natural"></i><span>自然</span><small>2</small>
+            </label>
+            <label class="layer-toggle is-active" data-type="人文">
+              <input type="checkbox" data-type="人文" checked>
+              <span class="layer-check" aria-hidden="true"></span>
+              <i class="tab-dot human"></i><span>人文</span><small>22</small>
+            </label>
+            <label class="layer-toggle is-active" data-type="复合">
+              <input type="checkbox" data-type="复合" checked>
+              <span class="layer-check" aria-hidden="true"></span>
+              <i class="tab-dot compound"></i><span>复合</span><small>9</small>
+            </label>
           </div>
         </div>
         <div class="map-frame" id="mapFrame">
-          <img id="mapImage" src="lushan-composite.png" alt="庐山复合景观分布图">
+          <img id="mapImage" src="lushan-base.png" alt="庐山地区地名文化景观底图">
           <div class="map-wash"></div>
           <div class="hotspot-layer" id="hotspotLayer" aria-label="景观点位"></div>
           <div class="map-caption">
             <span class="caption-line"></span>
-            <span id="mapCaption">复合景观 · 交互图层</span>
+            <span id="mapCaption">3 / 3 图层已显示</span>
           </div>
           <div class="map-zoom-hint">点击点位查看档案</div>
         </div>
@@ -75,7 +87,7 @@
           </div>
         </div>
         <div class="record-list-head">
-          <span>当前类型记录</span>
+          <span>当前图层记录</span>
           <span id="listCount">0</span>
         </div>
         <div class="record-list" id="recordList"></div>
@@ -109,10 +121,10 @@
 
     <footer class="footer-note">
       <span>资料来源：庐山地名由来、起名时间与名称演化调研表</span>
-      <span>底图为既有分类制图成果 · 热点严格贴合底图原生编号圆圈（按图内 WGS84 经纬网标定）</span>
+      <span>统一地形底图 · 自然、人文、复合点位按 WGS84 经纬网叠加</span>
     </footer>
   </div>
   <script src="web_data.js"></script>
-  <script src="app.js?v=20260904-2"></script>
+  <script src="app.js?v=20260905-1"></script>
 </body>
 </html>
