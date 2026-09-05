@@ -86,21 +86,104 @@
 
   function parseEvents(record) {
     if (!record.evolution) return [];
-    const text = record.evolution;
-    const yearMatches = [];
-    const yearRegex = /(?:前\s*)?(\d{3,4})\s*年/g;
-    let match;
-    while ((match = yearRegex.exec(text))) {
-      const prefix = text.slice(Math.max(0, match.index - 3), match.index);
-      yearMatches.push(prefix.indexOf("前") >= 0 ? -Number(match[1]) : Number(match[1]));
-    }
+    const text = String(record.evolution).replace(/[\r\n]+/g, " ").trim();
+    const chunks = text.split(/(?=[①②③④⑤⑥⑦⑧⑨⑩]\s*)/).map((chunk) => chunk.replace(/^[①②③④⑤⑥⑦⑧⑨⑩]\s*/, "").trim()).filter(Boolean);
+    const sourceChunks = chunks.length > 1 ? chunks : text.split(/→|➜|=>/).map((chunk) => chunk.trim()).filter(Boolean);
+    const chunkYears = sourceChunks.map((chunk) => extractEventYears(chunk));
+    const events = [];
+    let previousYear = Number.isFinite(record.year) ? record.year : null;
+    sourceChunks.forEach((chunk, chunkIndex) => {
+      const names = extractHistoricalNames(chunk);
+      if (!names.length) return;
+      const years = chunkYears[chunkIndex];
+      const nextExplicitYear = chunkYears.slice(chunkIndex + 1).find((values) => values.length)?.[0];
+      let fallbackYear = years[0] ?? inferPeriodYear(chunk) ?? nextExplicitYear ?? previousYear ?? null;
+      // In arrow-style entries (“旧名”→“新名”), an undated first segment is
+      // explicitly the predecessor of the dated/current name.
+      if (!years.length && chunkIndex === 0 && record.year != null && sourceChunks.length > 1 && inferPeriodYear(chunk) == null) fallbackYear = Number(record.year) - 1;
+      names.forEach((name, index) => {
+        const year = years[index] ?? fallbackYear;
+        events.push({ year, name });
+        if (year != null) previousYear = year;
+      });
+    });
+    // Remove duplicate labels while preserving the chronology written in the
+    // survey sheet. The final current name is kept as the latest event.
+    return events.filter((event, index, all) => index === all.findIndex((item) => item.name === event.name && item.year === event.year));
+  }
+
+  function extractHistoricalNames(text) {
     const names = [];
-    const nameRegex = /[“「『]([^”」』]{2,24})[”」』]/g;
-    while ((match = nameRegex.exec(text))) {
+    const quoted = /[“「『"]([^”」』"]{1,30})[”」』"]/g;
+    let match;
+    while ((match = quoted.exec(text))) {
       const cleaned = match[1].replace(/[，。；、].*$/, "").trim();
+      const before = text.slice(Math.max(0, match.index - 4), match.index);
+      const after = text.slice(quoted.lastIndex, quoted.lastIndex + 6);
+      // Quoted explanations such as “天下书院之首” or a single-character
+      // etymological note (“函”字形意) are not historical place names.
+      if (cleaned.length < 2 || /之首|第一|美誉|天生一个|先生|禅师|居士/.test(cleaned) || /^之意|^字形|^意为/.test(after)) continue;
       if (cleaned && !names.includes(cleaned)) names.push(cleaned);
     }
-    return names.map((name, index) => ({ year: yearMatches[index] ?? record.year, name }));
+    // A few survey entries use an unquoted “称/改称/定名” phrase. Capture
+    // that name only when no quoted name was available in the same segment.
+    if (!names.length) {
+      const built = /(?:创建|设立|修建|建)(?!于)\s*([\u4e00-\u9fff]{2,16}(?:寺|观|庵|堂|桥|院|村|塔|亭|泉|谷|路|湖|池|峰))/g;
+      while ((match = built.exec(text))) {
+        const cleaned = match[1].trim();
+        if (cleaned && !names.includes(cleaned)) names.push(cleaned);
+      }
+      const plain = /(?:改称为|改称|定名为|定名|简称为|简称|又称|称为|称|名为)\s*([\u4e00-\u9fffA-Za-z][\u4e00-\u9fffA-Za-z·/]{1,24})/g;
+      while ((match = plain.exec(text))) {
+        const cleaned = match[1].replace(/[，。；、）)\s].*$/, "").trim();
+        if (cleaned && !names.includes(cleaned)) names.push(cleaned);
+      }
+    }
+    return names;
+  }
+
+  function extractEventYears(text) {
+    const years = [];
+    const add = (value) => { if (value != null && !years.includes(value)) years.push(value); };
+    let match;
+    const bce = /前\s*(\d{1,4})/g;
+    while ((match = bce.exec(text))) add(-Number(match[1]));
+    // Explicit year ranges such as 785—805, 960—980, or 1912—1949.
+    const ranges = /(\d{3,4})\s*[—\-–至~]\s*(\d{2,4})/g;
+    while ((match = ranges.exec(text))) add(Number(match[1]));
+    // Standalone years, excluding “300年前” (a relative duration).
+    const explicit = /(?<!\d)(\d{3,4})(?=\s*年(?!前))/g;
+    while ((match = explicit.exec(text))) add(Number(match[1]));
+    // Century + decade notation, e.g. “20世纪30—80年代”.
+    const decade = /(\d{1,2})世纪\s*(\d{1,2})\s*[—\-–至~]/.exec(text);
+    if (decade) {
+      const part = Number(decade[2]);
+      add((Number(decade[1]) - 1) * 100 + (part < 10 ? part * 10 : part));
+    }
+    const centuryRange = /(\d{1,2})\s*[—\-–至~]\s*(\d{1,2})世纪/.exec(text);
+    if (centuryRange) add(Math.round((Number(centuryRange[1]) + Number(centuryRange[2])) * 50));
+    // Many entries write the year only in parentheses: “建寺（940）”.
+    const parenthetical = /(?<!\d)(\d{3,4})(?=\s*[）)])/g;
+    while ((match = parenthetical.exec(text))) {
+      const before = text.slice(Math.max(0, match.index - 6), match.index);
+      // The second endpoint of a range such as （1912—1949）is not a
+      // separate event year; keep the range's first year instead.
+      if (/[—\-–至~]\s*$/.test(before)) continue;
+      add(Number(match[1]));
+    }
+    return years.sort((a, b) => a - b);
+  }
+
+  function inferPeriodYear(text) {
+    const periods = [
+      [/殷周/, -800], [/先秦|战国/, -223], [/东汉/, 100], [/东晋/, 370], [/晋代|晋朝/, 400],
+      [/南北朝|南朝/, 450], [/南唐/, 950], [/隋唐|唐代|唐朝|唐/, 750], [/五代/, 930],
+      [/北宋|南宋|宋代|宋朝|宋/, 1000], [/元代|元朝|元/, 1300],
+      [/明代|明朝|明初|明末/, 1500], [/清代|清初|清末|清朝/, 1750], [/民国/, 1930],
+      [/近代/, 1900], [/现代|当代/, 1980],
+    ];
+    for (const [pattern, year] of periods) if (pattern.test(text)) return year;
+    return null;
   }
 
   function formatYear(year) {
@@ -122,11 +205,35 @@
   }
 
   function historicalName(record) {
-    if (record.year != null && state.year < record.year) return { name: "尚未得名", note: "当前时间早于该名称的起始记录" };
+    const firstEventYear = record.events.map((event) => event.year).find((year) => year != null);
+    const firstYear = firstEventYear ?? record.year;
+    if (firstYear != null && state.year < firstYear) return { name: "尚未得名", note: "当前时间早于该名称的起始记录" };
     if (!record.events.length) return { name: record.name, note: "名称沿用至今" };
     const past = record.events.filter((event) => event.year == null || event.year <= state.year);
     const latest = past[past.length - 1];
+    // At the present-day endpoint, prefer the survey's canonical record name
+    // when the evolution text itself contains that name (for example 庐山、
+    // 天池寺、太乙村). This prevents an alias such as“匡庐”or“护国寺”from
+    // replacing the current displayed name while retaining aliases on the
+    // historical timeline.
+    if (state.year >= Number(data.meta.yearMax || 2016) && latest && recordNameAppearsInEvents(record)) {
+      const latestMatches = normalizePlaceName(latest.name) === normalizePlaceName(record.name);
+      if (!latestMatches) return { name: record.name, note: "当前名称（名称演化记录中保留历史别称）" };
+    }
     return latest ? { name: latest.name, note: latest.name === record.name ? "名称沿用至今" : `后续演化为“${record.name}”` } : { name: record.name, note: "名称沿用至今" };
+  }
+
+  function normalizePlaceName(value) {
+    return String(value || "").replace(/[“”「」『』\s]/g, "").replace(/^庐山(?=.+)/, "").split(/[\/、]/)[0];
+  }
+
+  function recordNameAppearsInEvents(record) {
+    const target = normalizePlaceName(record.name);
+    if (!target) return false;
+    return record.events.some((event) => normalizePlaceName(event.name) === target || String(event.name || "").split(/[\/、]/).some((part) => {
+      const candidate = normalizePlaceName(part);
+      return candidate === target || candidate.startsWith(target) || target.startsWith(candidate);
+    }));
   }
 
   function activeTypes() {
@@ -181,6 +288,17 @@
     return group.unit.name || group.records[0]?.researchUnitName || `调查单元 ${String(group.sourceNo).padStart(3, "0")}`;
   }
 
+  function groupLandscapeLabel(group) {
+    const names = [];
+    group.records.forEach((record) => {
+      const name = historicalName(record).name;
+      if (name && name !== "尚未得名" && !names.includes(name)) names.push(name);
+    });
+    if (!names.length) return "该时点尚无已知景观名称";
+    const shown = names.slice(0, 2).join(" / ");
+    return names.length > 2 ? `${shown} 等 ${names.length} 项` : shown;
+  }
+
   function renderMap() {
     els.mapImage.src = "lushan-base.png";
     els.mapImage.alt = "庐山地区地名文化景观底图";
@@ -209,7 +327,7 @@
       marker.dataset.lat = coords.lat.toFixed(6);
       const label = document.createElement("span");
       label.className = "hotspot-label";
-      label.textContent = groupLabel(group);
+      label.innerHTML = `<strong>${escapeHtml(groupLabel(group))}</strong><small>${escapeHtml(groupLandscapeLabel(group))}</small>`;
       label.title = marker.title;
       wrap.append(marker, label);
       els.hotspotLayer.appendChild(wrap);
