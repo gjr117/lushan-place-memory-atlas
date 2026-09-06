@@ -68,6 +68,8 @@
     mapSubtitle: document.getElementById("mapSubtitle"),
     mapCaption: document.getElementById("mapCaption"),
     mapFrame: document.getElementById("mapFrame"),
+    mapColumn: document.querySelector(".map-column"),
+    archivePanel: document.querySelector(".archive-panel"),
     hotspotLayer: document.getElementById("hotspotLayer"),
     selectedPlace: document.getElementById("selectedPlace"),
     recordList: document.getElementById("recordList"),
@@ -81,6 +83,19 @@
     activeCount: document.getElementById("activeCount"),
     evolutionCount: document.getElementById("evolutionCount"),
   };
+
+  // Keep the archive column exactly as tall as the map column on desktop.
+  // The archive itself scrolls internally, so a long dossier cannot push the
+  // timeline farther down than the map.
+  function syncArchiveHeight() {
+    if (!els.archivePanel || !els.mapColumn) return;
+    if (window.innerWidth <= 820) {
+      els.archivePanel.style.height = "";
+      return;
+    }
+    const mapHeight = Math.ceil(els.mapColumn.getBoundingClientRect().height);
+    if (mapHeight > 0) els.archivePanel.style.height = `${mapHeight}px`;
+  }
 
   document.getElementById("evolutionCount").textContent = String(data.meta.evolutionCount || records.filter((r) => r.evolution).length);
 
@@ -474,4 +489,6 @@
   renderDossier();
   renderArchiveVisibility();
   renderTimeline();
+  requestAnimationFrame(syncArchiveHeight);
+  window.addEventListener("resize", syncArchiveHeight);
 })();
