@@ -78,6 +78,7 @@ button { cursor: pointer; }
 .hotspot-label { position: absolute; left: 14px; top: -15px; display: block; max-width: 170px; padding: 4px 7px; border: 1px solid color-mix(in srgb, var(--point) 48%, rgba(255,255,255,.55)); border-radius: 4px; color: #172126; background: rgba(249,247,239,.92); box-shadow: 0 2px 8px rgba(0,0,0,.18); font-size: 10px; line-height: 1.25; white-space: normal; overflow: hidden; text-overflow: ellipsis; pointer-events: none; opacity: .9; transform-origin: left center; transition: opacity .18s ease, transform .18s ease; }
 .hotspot-label strong, .hotspot-label small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }.hotspot-label strong { font-size: 10px; font-weight: 600; }.hotspot-label small { margin-top: 2px; font-size: 9px; opacity: .72; }
 .hotspot-wrap:hover .hotspot-label, .hotspot-wrap.is-selected .hotspot-label { opacity: 1; transform: scale(1.04); z-index: 6; }
+.hotspot-wrap:not(:hover):not(.is-selected) .hotspot-label { opacity: 0; transform: scale(.94); }
 .hotspot.human + .hotspot-label { color: #5d241d; }
 .hotspot.natural + .hotspot-label { color: #164d59; }
 .hotspot.compound + .hotspot-label { color: #3e2c62; }
@@ -91,7 +92,7 @@ button { cursor: pointer; }
 .archive-head h2 { margin: 7px 0 0; font-family: Georgia, "Songti SC", serif; font-size: 25px; font-weight: 500; }
 .clear-button { border: 1px solid var(--line-strong); color: var(--muted); background: transparent; padding: 6px 10px; border-radius: 4px; font-size: 11px; }
 .clear-button:hover { color: var(--ink); border-color: var(--accent); }
-.selected-place { padding: 25px 26px 22px; min-height: 276px; border-bottom: 1px solid var(--line); }
+.selected-place { padding: 25px 26px 22px; min-height: 276px; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
 .empty-state { min-height: 225px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: var(--muted); border: 1px dashed rgba(215,231,233,.18); border-radius: 6px; background: rgba(255,255,255,.015); }
 .empty-symbol { width: 41px; height: 41px; border: 1px solid rgba(232,224,207,.38); border-radius: 50%; position: relative; margin-bottom: 16px; }
 .empty-symbol::after { content: ""; position: absolute; left: 19px; top: 7px; width: 1px; height: 25px; background: rgba(232,224,207,.55); transform: rotate(45deg); }
@@ -101,7 +102,8 @@ button { cursor: pointer; }
 .place-title { margin: 13px 0 7px; font-family: Georgia, "Songti SC", serif; font-size: 27px; font-weight: 500; line-height: 1.15; }.place-subtitle { margin: 0; color: var(--muted); font-size: 11px; }
 .fact-grid { margin: 21px 0 0; display: grid; grid-template-columns: 1fr 1fr; gap: 13px 18px; }.fact-label { display: block; color: var(--faint); font-size: 10px; margin-bottom: 4px; }.fact-value { display: block; color: var(--ink); font-size: 12px; line-height: 1.42; }
 .dossier-copy { margin: 20px 0 0; color: #c4ced0; font-size: 12px; line-height: 1.72; }.dossier-copy strong { color: var(--cream); font-weight: 500; }
-.group-records { display: grid; gap: 16px; margin-top: 20px; }
+.group-records { display: grid; gap: 16px; margin-top: 20px; max-height: 42vh; overflow-y: auto; padding-right: 8px; scrollbar-width: thin; scrollbar-color: rgba(215,231,233,.22) transparent; }
+.group-records::-webkit-scrollbar { width: 6px; }.group-records::-webkit-scrollbar-thumb { background: rgba(215,231,233,.2); border-radius: 8px; }
 .group-record { padding-top: 16px; border-top: 1px solid var(--line); }
 .group-record:first-child { padding-top: 0; border-top: 0; }
 .group-record h4 { margin: 7px 0 5px; color: var(--cream); font-family: Georgia, "Songti SC", serif; font-size: 18px; font-weight: 500; }

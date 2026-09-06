@@ -332,10 +332,15 @@
       wrap.append(marker, label);
       els.hotspotLayer.appendChild(wrap);
     });
-    els.recordCount.textContent = `当前地图 ${groups.length} 个编号点 · ${visible.length} 条档案`;
+    els.recordCount.textContent = state.selectedId ? `当前地图 ${groups.length} 个编号点 · ${visible.length} 条档案` : `当前地图 ${groups.length} 个编号点`;
   }
 
   function renderList() {
+    if (!state.selectedId) {
+      els.listCount.textContent = "0";
+      els.recordList.innerHTML = "";
+      return;
+    }
     const list = filteredList();
     els.listCount.textContent = String(list.length);
     els.recordList.innerHTML = "";
@@ -381,6 +386,14 @@
     els.selectedPlace.innerHTML = `<div class="dossier-tag" style="--point:${meta.color}"><i></i>${escapeHtml(layerType)}图层 · ${escapeHtml(record.category)}</div><h3 class="place-title">${escapeHtml(historic.name)}</h3><p class="place-subtitle">研究单元名称：${escapeHtml(record.researchUnitName)} · 研究单元名称2：${escapeHtml(record.researchUnitName2 || record.name)}</p><div class="fact-grid"><div><span class="fact-label">起名时间</span><span class="fact-value">${escapeHtml(record.start || "年代不详")}</span></div><div><span class="fact-label">时间轴位置</span><span class="fact-value">${formatYear(record.year)}</span></div><div><span class="fact-label">所属研究单元</span><span class="fact-value">${escapeHtml(record.researchUnitId || `RU-${String(record.sourceNo).padStart(3, "0")}`)}</span></div><div><span class="fact-label">调研状态</span><span class="fact-value">${record.evolution ? "有名称演化记录" : "由来记录"}</span></div></div><div class="dossier-copy"><strong>地名由来</strong><br>${escapeHtml(record.origin)}</div>${evolutionBlock}`;
   }
 
+  function renderArchiveVisibility() {
+    const hasSelection = Boolean(state.selectedId);
+    const recordHead = document.querySelector(".record-list-head");
+    const search = document.querySelector(".archive-search");
+    if (recordHead) recordHead.hidden = !hasSelection;
+    if (search) search.hidden = !hasSelection;
+  }
+
   function renderTimeline() {
     const range = Number(els.timelineRange.value);
     state.year = range;
@@ -394,6 +407,7 @@
     renderMap();
     renderList();
     renderDossier();
+    renderArchiveVisibility();
   }
 
   function selectRecord(id) {
@@ -407,6 +421,7 @@
     renderMap();
     renderList();
     renderDossier();
+    renderArchiveVisibility();
     if (window.innerWidth < 820) els.selectedPlace.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
@@ -415,6 +430,7 @@
     renderMap();
     renderList();
     renderDossier();
+    renderArchiveVisibility();
     if (window.innerWidth < 820) els.selectedPlace.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
@@ -435,6 +451,7 @@
     renderMap();
     renderList();
     renderDossier();
+    renderArchiveVisibility();
     renderTimeline();
   }
 
@@ -446,11 +463,12 @@
   els.searchInput.addEventListener("input", (event) => { state.query = event.target.value; renderList(); });
   els.timelineRange.addEventListener("input", renderTimeline);
   document.getElementById("timelineReset").addEventListener("click", () => { els.timelineRange.value = els.timelineRange.max; renderTimeline(); });
-  document.getElementById("clearSelection").addEventListener("click", () => { state.selectedId = null; renderMap(); renderList(); renderDossier(); });
+  document.getElementById("clearSelection").addEventListener("click", () => { state.selectedId = null; renderMap(); renderList(); renderDossier(); renderArchiveVisibility(); });
   document.addEventListener("keydown", (event) => { if (event.key === "/" && document.activeElement !== els.searchInput) { event.preventDefault(); els.searchInput.focus(); } });
 
   renderMap();
   renderList();
   renderDossier();
+  renderArchiveVisibility();
   renderTimeline();
 })();
