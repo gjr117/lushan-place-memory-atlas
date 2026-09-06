@@ -75,10 +75,9 @@ button { cursor: pointer; }
 .hotspot:hover, .hotspot.is-selected { transform: translate(-50%, -50%) scale(1.34); z-index: 4; }
 .hotspot.is-selected::before { box-shadow: 0 0 0 3px rgba(10,20,24,.8), 0 0 0 6px rgba(232,224,207,.72), 0 0 16px 5px color-mix(in srgb, var(--point) 55%, transparent); }
 .hotspot.is-muted { opacity: .2; transform: translate(-50%, -50%) scale(.78); }
-.hotspot-label { position: absolute; left: 14px; top: -15px; display: block; max-width: 170px; padding: 4px 7px; border: 1px solid color-mix(in srgb, var(--point) 48%, rgba(255,255,255,.55)); border-radius: 4px; color: #172126; background: rgba(249,247,239,.92); box-shadow: 0 2px 8px rgba(0,0,0,.18); font-size: 10px; line-height: 1.25; white-space: normal; overflow: hidden; text-overflow: ellipsis; pointer-events: none; opacity: .9; transform-origin: left center; transition: opacity .18s ease, transform .18s ease; }
+.hotspot-label { position: absolute; left: 14px; top: -15px; display: block; max-width: 170px; padding: 4px 7px; border: 1px solid color-mix(in srgb, var(--point) 48%, rgba(255,255,255,.55)); border-radius: 4px; color: #172126; background: rgba(249,247,239,.92); box-shadow: 0 2px 8px rgba(0,0,0,.18); font-size: 10px; line-height: 1.25; white-space: normal; overflow: hidden; text-overflow: ellipsis; pointer-events: none; opacity: 0; transform: scale(.94); transform-origin: left center; transition: opacity .18s ease, transform .18s ease; }
 .hotspot-label strong, .hotspot-label small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }.hotspot-label strong { font-size: 10px; font-weight: 600; }.hotspot-label small { margin-top: 2px; font-size: 9px; opacity: .72; }
-.hotspot-wrap:hover .hotspot-label, .hotspot-wrap.is-selected .hotspot-label { opacity: 1; transform: scale(1.04); z-index: 6; }
-.hotspot-wrap:not(:hover):not(.is-selected) .hotspot-label { opacity: 0; transform: scale(.94); }
+.hotspot:hover + .hotspot-label, .hotspot:focus-visible + .hotspot-label { opacity: 1; transform: scale(1.04); z-index: 6; }
 .hotspot.human + .hotspot-label { color: #5d241d; }
 .hotspot.natural + .hotspot-label { color: #164d59; }
 .hotspot.compound + .hotspot-label { color: #3e2c62; }
@@ -86,8 +85,9 @@ button { cursor: pointer; }
 .caption-line { width: 21px; height: 1px; background: var(--accent); }
 .map-zoom-hint { position: absolute; right: 18px; bottom: 18px; color: rgba(235,239,235,.62); font-size: 11px; }
 
-.archive-panel { background: var(--panel); display: flex; flex-direction: column; min-width: 0; max-height: calc(100vh - 112px); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: rgba(215,231,233,.28) transparent; }
+.archive-panel { background: var(--panel); display: block; min-width: 0; max-height: calc(100vh - 112px); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: rgba(215,231,233,.28) transparent; }
 .archive-panel::-webkit-scrollbar { width: 7px; }.archive-panel::-webkit-scrollbar-thumb { background: rgba(215,231,233,.22); border-radius: 8px; }.archive-panel::-webkit-scrollbar-track { background: transparent; }
+[hidden] { display: none !important; }
 .archive-head { padding: 32px 26px 20px; display: flex; justify-content: space-between; align-items: start; border-bottom: 1px solid var(--line); }
 .archive-head h2 { margin: 7px 0 0; font-family: Georgia, "Songti SC", serif; font-size: 25px; font-weight: 500; }
 .clear-button { border: 1px solid var(--line-strong); color: var(--muted); background: transparent; padding: 6px 10px; border-radius: 4px; font-size: 11px; }
