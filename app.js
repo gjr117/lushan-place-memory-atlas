@@ -318,7 +318,10 @@
       wrap.style.cssText = `left:${(group.point[0] / 2400) * 100}%;top:${(group.point[1] / 3000) * 100}%;`;
       const marker = document.createElement("button");
       marker.type = "button";
-      marker.className = `hotspot ${group.type}${selected ? " is-selected" : ""}${group.records.some(visibleAtTime) ? "" : " is-muted"}`;
+      // Point visibility is controlled by the selected layer, not by the
+      // timeline. Every point in a category keeps the same visual weight;
+      // the timeline only changes its historical name and archive content.
+      marker.className = `hotspot ${group.type}${selected ? " is-selected" : ""}`;
       marker.style.cssText = markerStyle(group.type);
       marker.title = `${groupLabel(group)} · ${group.type} · ${group.records.length} 条景观档案`;
       marker.setAttribute("aria-label", `查看${groupLabel(group)}档案`);

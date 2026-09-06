@@ -69,12 +69,11 @@ button { cursor: pointer; }
 .map-wash { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(4,12,17,.1), rgba(4,12,17,.08) 60%, rgba(4,12,17,.48)); pointer-events: none; }
 .hotspot-layer { position: absolute; inset: 0; pointer-events: none; }
 .hotspot-wrap { position: absolute; transform: translate(-50%, -50%); pointer-events: none; z-index: 2; }
-.hotspot { --point: var(--compound); position: absolute; left: 0; top: 0; transform: translate(-50%, -50%); width: 20px; height: 20px; border: 0; border-radius: 50%; background: transparent; pointer-events: auto; padding: 0; transition: transform .18s ease, opacity .18s ease; }
-.hotspot::before { content: ""; position: absolute; inset: 6px; border-radius: 50%; background: var(--point); box-shadow: 0 0 0 3px rgba(10,20,24,.65), 0 0 0 5px color-mix(in srgb, var(--point) 35%, transparent); }
+.hotspot { --point: var(--compound); position: absolute; left: 0; top: 0; transform: translate(-50%, -50%); width: 20px; height: 20px; border: 0; border-radius: 50%; background: transparent; opacity: 1; pointer-events: auto; padding: 0; transition: transform .18s ease; }
+.hotspot::before { content: ""; position: absolute; inset: 6px; border-radius: 50%; background: var(--point); box-shadow: 0 0 0 3px rgba(10,20,24,.65), 0 0 0 5px color-mix(in srgb, var(--point) 48%, transparent); }
 .hotspot::after { content: ""; position: absolute; inset: 1px; border: 1px solid color-mix(in srgb, var(--point) 70%, white); border-radius: 50%; opacity: .65; }
 .hotspot:hover, .hotspot.is-selected { transform: translate(-50%, -50%) scale(1.34); z-index: 4; }
 .hotspot.is-selected::before { box-shadow: 0 0 0 3px rgba(10,20,24,.8), 0 0 0 6px rgba(232,224,207,.72), 0 0 16px 5px color-mix(in srgb, var(--point) 55%, transparent); }
-.hotspot.is-muted { opacity: .2; transform: translate(-50%, -50%) scale(.78); }
 .hotspot-label { position: absolute; left: 14px; top: -15px; display: block; max-width: 170px; padding: 4px 7px; border: 1px solid color-mix(in srgb, var(--point) 48%, rgba(255,255,255,.55)); border-radius: 4px; color: #172126; background: rgba(249,247,239,.92); box-shadow: 0 2px 8px rgba(0,0,0,.18); font-size: 10px; line-height: 1.25; white-space: normal; overflow: hidden; text-overflow: ellipsis; pointer-events: none; opacity: 0; transform: scale(.94); transform-origin: left center; transition: opacity .18s ease, transform .18s ease; }
 .hotspot-label strong, .hotspot-label small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }.hotspot-label strong { font-size: 10px; font-weight: 600; }.hotspot-label small { margin-top: 2px; font-size: 9px; opacity: .72; }
 .hotspot:hover + .hotspot-label, .hotspot:focus-visible + .hotspot-label { opacity: 1; transform: scale(1.04); z-index: 6; }
