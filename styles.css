@@ -43,7 +43,7 @@ button { cursor: pointer; }
 .status-dot { width: 7px; height: 7px; background: var(--natural); border-radius: 50%; box-shadow: 0 0 0 4px rgba(104, 184, 176, .12); }
 .meta-divider { width: 1px; height: 15px; background: var(--line); }
 
-.workspace { display: grid; grid-template-columns: minmax(0, 1fr) 376px; min-height: 0; align-items: start; }
+.workspace { display: grid; grid-template-columns: minmax(0, 1fr) 376px; min-height: 0; align-items: stretch; }
 .map-column { min-width: 0; padding: 30px 30px 26px 42px; border-right: 1px solid var(--line); }
 .map-toolbar { display: flex; justify-content: space-between; align-items: end; gap: 25px; margin-bottom: 20px; }
 .map-heading h2 { margin: 6px 0 4px; font-family: Georgia, "Songti SC", serif; font-weight: 500; font-size: 29px; }
@@ -84,7 +84,7 @@ button { cursor: pointer; }
 .caption-line { width: 21px; height: 1px; background: var(--accent); }
 .map-zoom-hint { position: absolute; right: 18px; bottom: 18px; color: rgba(235,239,235,.62); font-size: 11px; }
 
-.archive-panel { background: var(--panel); display: block; min-width: 0; max-height: calc(100vh - 112px); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: rgba(215,231,233,.28) transparent; }
+.archive-panel { background: var(--panel); display: block; min-width: 0; height: 100%; max-height: none; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: rgba(215,231,233,.28) transparent; }
 .archive-panel::-webkit-scrollbar { width: 7px; }.archive-panel::-webkit-scrollbar-thumb { background: rgba(215,231,233,.22); border-radius: 8px; }.archive-panel::-webkit-scrollbar-track { background: transparent; }
 [hidden] { display: none !important; }
 .archive-head { padding: 32px 26px 20px; display: flex; justify-content: space-between; align-items: start; border-bottom: 1px solid var(--line); }
@@ -115,6 +115,6 @@ button { cursor: pointer; }
 .footer-note { display: flex; justify-content: space-between; gap: 20px; padding: 12px 42px 18px; color: #65747a; font-size: 10px; background: #0c1419; }
 
 @media (max-width: 1050px) { .workspace { grid-template-columns: minmax(0, 1fr) 330px; }.map-column { padding-left: 24px; }.topbar { padding: 0 24px; }.timeline-dock { padding-left: 24px; padding-right: 24px; grid-template-columns: 155px minmax(0,1fr) 135px; gap: 15px; }.footer-note { padding-left: 24px; padding-right: 24px; } }
-@media (max-width: 820px) { .topbar { height: auto; padding: 18px 18px; align-items: flex-start; gap: 15px; flex-direction: column; }.topbar-meta { align-self: stretch; }.workspace { display: block; }.map-column { padding: 22px 18px 10px; border-right: 0; }.map-frame { min-height: 0; }.archive-panel { max-height: none; overflow: visible; border-top: 1px solid var(--line); }.selected-place { min-height: 0; }.record-list { max-height: 310px; overflow: auto; }.timeline-dock { grid-template-columns: 1fr auto; padding: 20px 18px; }.timeline-main { grid-column: 1 / -1; grid-row: 2; }.timeline-stats { gap: 18px; }.footer-note { padding: 12px 18px 18px; flex-direction: column; gap: 5px; } }
+@media (max-width: 820px) { .topbar { height: auto; padding: 18px 18px; align-items: flex-start; gap: 15px; flex-direction: column; }.topbar-meta { align-self: stretch; }.workspace { display: block; }.map-column { padding: 22px 18px 10px; border-right: 0; }.map-frame { min-height: 0; }.archive-panel { height: auto; max-height: none; overflow: visible; border-top: 1px solid var(--line); }.selected-place { min-height: 0; }.record-list { max-height: 310px; overflow: auto; }.timeline-dock { grid-template-columns: 1fr auto; padding: 20px 18px; }.timeline-main { grid-column: 1 / -1; grid-row: 2; }.timeline-stats { gap: 18px; }.footer-note { padding: 12px 18px 18px; flex-direction: column; gap: 5px; } }
 @media (max-width: 520px) { .map-toolbar { align-items: flex-start; flex-direction: column; gap: 15px; }.layer-switches { width: 100%; }.layer-toggle { flex: 1; justify-content: center; padding-left: 5px; padding-right: 5px; }.layer-toggle small { display: none; }.map-heading h2 { font-size: 26px; }.archive-head, .selected-place, .archive-search { padding-left: 18px; padding-right: 18px; }.record-list-head { padding-left: 18px; padding-right: 18px; }.record-list { padding-left: 18px; }.timeline-label strong { font-size: 27px; }.timeline-stats strong { font-size: 20px; }.hotspot-label { max-width: 125px; font-size: 9px; padding: 3px 5px; } }
 .record-item.is-future { opacity: .48; }
